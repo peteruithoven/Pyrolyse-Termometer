@@ -8,11 +8,11 @@
 #define GOAL_SENSOR 2
 #define RELAY 12
 #define LED 10
-#define SEND_GRAPH_DATA 0
+#define SEND_GRAPH_DATA 1
 
 boolean adjustingGoal = false;
 
-int state = 0; // 0 = cooling, 1 = heating
+unsigned char state = 0; // 0 = cooling, 1 = heating
 
 int raw0C = 5; //2;
 int raw100C = 146;
@@ -33,14 +33,14 @@ void setup()
   pinMode(LED,OUTPUT);
   pinMode(RELAY,OUTPUT);
   Serial.begin(9600);
-  Serial.println("Start");
   
   lcd.begin(16, 2);
   
   time = 0;
   
+  Serial.flush();
   Serial.print('r', BYTE);
-  Serial.print(1, BYTE);
+  Serial.print('|', BYTE);
 }
 
 void loop()
@@ -50,9 +50,9 @@ void loop()
     celsius = 0.8 * celsius + 0.2 * sensitivity * (raw - raw0C);
     //analogWrite(LED,raw/4);
     
-    Serial.print(raw);
-    Serial.print(' ');
-    Serial.println((int)celsius);
+    //Serial.print(raw);
+    //Serial.print(' ');
+    //Serial.println((int)celsius);
     
     if(adjustingGoal)
     {
@@ -84,28 +84,44 @@ void loop()
   
   
   if (millis() % 1000 == 0)
+  //if(Serial.available() > 0 && Serial.read() == 'r')
   { 
     if(SEND_GRAPH_DATA)
     {
-      int celsiusBytes = (float)celsius/(float)1000*255;
-      int goalBytes = (float)goal/(float)1000*255;
+      unsigned char celsiusBytes = (float)celsius/(float)1000*255;
+      unsigned char goalBytes = (float)goal/(float)1000*255;
       
       Serial.print('c', BYTE);
+      //Serial.print(':', BYTE);
       Serial.print(celsiusBytes, BYTE);
+      //Serial.print('/');
+      //Serial.print(celsiusBytes);
+      
+      //Serial.print(',', BYTE);
       Serial.print('g', BYTE);
+      //Serial.print(':', BYTE);
       Serial.print(goalBytes, BYTE);
+      //Serial.print('/');
+      //Serial.print(goalBytes);
+      
+      //Serial.print(',', BYTE);
       Serial.print('s', BYTE);
-      Serial.print(state, BYTE);
+      //Serial.print(':', BYTE);
+
+      Serial.print(state+1, BYTE);
+      //Serial.print('/');
+      //Serial.print(state);
+      Serial.print('|', BYTE);
     }
     else
     {
-      /*Serial.print(secRaw);
+      Serial.print(secRaw);
       Serial.print(' ');
       Serial.print((int)celsius);
       Serial.print(' ');
       Serial.print('(');
       Serial.print((int)goal);
-      Serial.println(')');*/
+      Serial.println(')');
       
     }
   }
